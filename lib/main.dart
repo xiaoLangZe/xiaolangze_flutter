@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xiaolangze/pages/feedbackPage/feedbackPage.dart';
 import 'package:xiaolangze/pages/loginPage/loginPage.dart';
 import 'package:xiaolangze/pages/homePage/homePage.dart';
 
@@ -27,6 +28,9 @@ class MyApp extends StatelessWidget {
             page = const Loginpage();
             break;
           case "describe": // 描述页
+            break;
+          case "feedback":
+            page = const FeedBack();
             break;
         }
 

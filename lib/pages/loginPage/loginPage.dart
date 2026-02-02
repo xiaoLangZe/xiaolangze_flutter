@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 enum LoginType {
   namePwdLogin, // 账号密码登录
@@ -9,6 +12,7 @@ enum LoginType {
   userManual, // 用户手册
 }
 
+String _emailStr = "";
 // 校验email
 bool isValidEmail(String email) {
   if (email.isEmpty) {
@@ -21,6 +25,19 @@ bool isValidEmail(String email) {
   return emailRegExp.hasMatch(email);
 }
 
+String maskEmail(String email) {
+  final parts = email.split('@');
+  final name = parts[0];
+  final domain = parts[1];
+  int keepLength = name.length ~/ 2;
+  if (keepLength == 0) keepLength = 1;
+  final visiblePart = name.substring(0, keepLength);
+  final maskedPart = '*' * (name.length - keepLength);
+
+  // 3. 拼接时加上 '@'
+  return '$visiblePart$maskedPart@$domain';
+}
+
 class Loginpage extends StatefulWidget {
   const Loginpage({super.key});
   @override
@@ -29,7 +46,7 @@ class Loginpage extends StatefulWidget {
 
 class _LoginpageState extends State<Loginpage> {
   LoginType _currentType = LoginType.captchaLogin;
-  
+  DateTime? _lastPressedAt;
 
   void _switchTo(LoginType type) {
     setState(() {
@@ -44,62 +61,91 @@ class _LoginpageState extends State<Loginpage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      body: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          height: double.infinity, // 或指定具体高度
-          child: Stack(
-            children: [
-              // 图片部分
-              Stack(
-                children: [
-                  Positioned.fill(
-                    top: 0,
-                    bottom:
-                        MediaQuery.of(context).size.height * 3 / 4, // 占据顶部1/4高度
-                    child: Image.asset(
-                      'assets/images/bg.png',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned.fill(
-                    top: 0,
-                    bottom:
-                        MediaQuery.of(context).size.height * 3 / 4, // 占据顶部1/4高度
-                    child: Image.asset(
-                      'assets/images/welcome.png',
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ],
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height:
-                    MediaQuery.of(context).size.height * 3.1 / 4, // 占据底部3/4高度
-                child: ClipRRect(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20.0),
-                    topRight: Radius.circular(20.0),
-                  ),
-                  child: Container(
-                    color: const Color(0xFFFFFFFF),
-                    child: Padding(
-                      padding: EdgeInsetsGeometry.only(
-                        left: 30,
-                        right: 30,
-                        top: 30,
+    return PopScope(
+      canPop: false, // 禁用系统返回（由我们控制）
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        final now = DateTime.now();
+        if (_lastPressedAt == null ||
+            now.difference(_lastPressedAt!) > const Duration(seconds: 2)) {
+          // 第一次点击，或超过2秒
+          _lastPressedAt = now;
+          Fluttertoast.showToast(
+            msg: "再按一次返回主页",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black45,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          ;
+        } else {
+          Navigator.of(context).pop(); // 关闭当前页面
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            height: double.infinity, // 或指定具体高度
+            child: Stack(
+              children: [
+                // 图片部分
+                Stack(
+                  children: [
+                    Positioned.fill(
+                      top: 0,
+                      bottom:
+                          MediaQuery.of(context).size.height *
+                          3 /
+                          4, // 占据顶部1/4高度
+                      child: Image.asset(
+                        'assets/images/bg.png',
+                        fit: BoxFit.cover,
                       ),
-                      child: _buildCurrentPage(),
+                    ),
+                    Positioned.fill(
+                      top: 0,
+                      bottom:
+                          MediaQuery.of(context).size.height *
+                          3 /
+                          4, // 占据顶部1/4高度
+                      child: Image.asset(
+                        'assets/images/welcome.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ],
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height:
+                      MediaQuery.of(context).size.height * 3.1 / 4, // 占据底部3/4高度
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      topRight: Radius.circular(20.0),
+                    ),
+                    child: Container(
+                      color: const Color(0xFFFFFFFF),
+                      child: Padding(
+                        padding: EdgeInsetsGeometry.only(
+                          left: 30,
+                          right: 30,
+                          top: 30,
+                        ),
+                        child: _buildCurrentPage(),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -110,6 +156,7 @@ class _LoginpageState extends State<Loginpage> {
     switch (_currentType) {
       case LoginType.captchaLogin:
         return CaptchaLogin(
+          toReceiveCaptchaLogin: () => _switchTo(LoginType.receiveCaptchaLogin),
           toNamePwdLogin: () => _switchTo(LoginType.namePwdLogin),
         );
       case LoginType.namePwdLogin:
@@ -117,6 +164,9 @@ class _LoginpageState extends State<Loginpage> {
           voidCallback: () => _switchTo(LoginType.captchaLogin),
         );
       case LoginType.receiveCaptchaLogin:
+        return ReceiveCaptchaLogin(
+          toBack: () => _switchTo(LoginType.captchaLogin),
+        );
       case LoginType.changepasswordReceiveCaptcha:
       case LoginType.changepasswordPage:
       case LoginType.userManual:
@@ -138,8 +188,13 @@ class NamePwdLogin extends StatefulWidget {
 
 // 验证码登录
 class CaptchaLogin extends StatefulWidget {
-  const CaptchaLogin({super.key, required this.toNamePwdLogin});
+  const CaptchaLogin({
+    super.key,
+    required this.toNamePwdLogin,
+    required this.toReceiveCaptchaLogin,
+  });
   final VoidCallback toNamePwdLogin;
+  final VoidCallback toReceiveCaptchaLogin;
 
   @override
   State<CaptchaLogin> createState() => _CaptchaLoginState();
@@ -147,8 +202,8 @@ class CaptchaLogin extends StatefulWidget {
 
 // 接收验证码页面
 class ReceiveCaptchaLogin extends StatefulWidget {
-  const ReceiveCaptchaLogin({super.key, required this.voidCallback});
-  final VoidCallback voidCallback;
+  const ReceiveCaptchaLogin({super.key, required this.toBack});
+  final VoidCallback toBack;
 
   @override
   State<ReceiveCaptchaLogin> createState() => _ReceiveCaptchaLoginState();
@@ -211,6 +266,7 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
             ),
           ),
         ),
+
         SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
@@ -369,9 +425,22 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
 class _CaptchaLoginState extends State<CaptchaLogin> {
   final TextEditingController _controllerUser = TextEditingController();
   bool _isAgreed = false;
+  bool _canNext = false;
+
+  void checkCanNext() {
+    String currentText = _controllerUser.text;
+    setState(() {
+      _canNext = isValidEmail(currentText) && _isAgreed;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    // 检测邮箱
+    _controllerUser.addListener(() {
+      checkCanNext();
+    });
   }
 
   @override
@@ -405,7 +474,15 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
             ),
           ),
         ),
-        SizedBox(height: 10),
+        SizedBox(height: 15),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            "未注册账号通过验证将自动注册",
+            style: TextStyle(color: Colors.black54),
+          ),
+        ),
+        SizedBox(height: 5),
         Align(
           alignment: Alignment.centerLeft,
           child: Row(
@@ -417,6 +494,7 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
                 onChanged: (value) {
                   setState(() {
                     _isAgreed = value!;
+                    checkCanNext();
                   });
                 },
               ),
@@ -463,9 +541,25 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
         SizedBox(height: 10),
 
         TextButton(
-          onPressed: () {},
+          onPressed: () {
+            if (_canNext) {
+              _emailStr = _controllerUser.text;
+              widget.toReceiveCaptchaLogin();
+            }
+          },
+
           style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(Colors.lightBlue),
+            // 移除水波纹
+            overlayColor: WidgetStateProperty.resolveWith<Color?>((state) {
+              return Colors.transparent; // 所有状态下都透明
+            }),
+            // 禁用按压时的颜色变化
+            foregroundColor: WidgetStateProperty.resolveWith<Color>((state) {
+              return Colors.blue; // 始终保持原始文字颜色
+            }),
+            backgroundColor: WidgetStateProperty.all<Color>(
+              _canNext ? Colors.lightBlue : Colors.grey[100]!,
+            ),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0), // 圆角
@@ -508,7 +602,9 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
               child: Text("账号密码登录", style: TextStyle(color: Colors.black)),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, "feedback");
+              },
               style: ButtonStyle(
                 padding: WidgetStateProperty.all(EdgeInsets.zero), // 去掉内边距
                 overlayColor: WidgetStateProperty.all(
@@ -534,15 +630,51 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
 }
 
 // 接收验证码页面
-class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> { 
+class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
+  final TextEditingController _controllerCode = TextEditingController();
+  int _countdown = 60; // 倒计时秒数
+  bool _isCounting = false; // 是否正在倒计时
+  late Timer _timer;
+
+  void _startCountdown() {
+    setState(() {
+      _isCounting = true;
+      _countdown = 60;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown <= 0) {
+        _timer.cancel();
+        setState(() {
+          _isCounting = false;
+        });
+      } else {
+        setState(() {
+          _countdown--;
+        });
+      }
+    });
+  }
+
+  void sendEmailCode() {
+    _startCountdown();
+  }
+
   @override
   void initState() {
     super.initState();
+    sendEmailCode();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _controllerCode.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController controllerUser = TextEditingController();
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -554,14 +686,13 @@ class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
           ),
         ),
         SizedBox(height: 10),
-        SizedBox(height: 10),
         Align(
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
-              Text("验证码将发送至", style: TextStyle(color: Colors.black54)),
-              Text("《》", style: TextStyle(color: Colors.black)),
-              Text(",请注意查收", style: TextStyle(color: Colors.black54)),
+              Text("验证码将发送至 ", style: TextStyle(color: Colors.black54)),
+              Text(maskEmail(_emailStr), style: TextStyle(color: Colors.black)),
+              Text(" ,请注意查收", style: TextStyle(color: Colors.black54)),
             ],
           ),
         ),
@@ -572,7 +703,7 @@ class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
             borderRadius: BorderRadius.circular(12), // 圆角
           ),
           child: TextField(
-            controller: controllerUser,
+            controller: _controllerCode,
             textAlign: TextAlign.center,
             decoration: InputDecoration(
               // prefixIcon: Icon(Icons.email),
@@ -586,7 +717,9 @@ class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton(
-            onPressed: () {},
+            onPressed: () {
+              widget.toBack();
+            },
             style: ButtonStyle(
               padding: WidgetStateProperty.all(EdgeInsets.zero), // 去掉内边距
               overlayColor: WidgetStateProperty.all(
@@ -601,27 +734,33 @@ class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
               tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 减小点击区域到文字大小
               alignment: Alignment.centerLeft, // 对齐方式（可选）
             ),
-            child: Text("< 返回更换手机号", style: TextStyle(color: Colors.black)),
+            child: Text("< 返回更换邮箱号码", style: TextStyle(color: Colors.black)),
           ),
         ),
-        SizedBox(height: 30),
+        SizedBox(height: 10),
+
         TextButton(
-          onPressed: () {},
+          onPressed: _isCounting
+              ? null // 倒计时期间禁用按钮
+              : () {
+                  sendEmailCode();
+                },
           style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(Colors.lightBlue),
+            backgroundColor: WidgetStateProperty.all<Color>(
+              _isCounting ? Colors.grey[100]! : Colors.lightBlue,
+            ),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.0), // 圆角
               ),
             ),
           ),
-
           child: SizedBox(
             width: double.infinity,
             child: Center(
               child: Text(
-                "下一步",
-                style: TextStyle(color: Colors.black, fontSize: 20),
+                _isCounting ? '$_countdown 秒后重试' : '重新获取验证码',
+                style: TextStyle(color: Colors.black, fontSize: 15),
               ),
             ),
           ),
