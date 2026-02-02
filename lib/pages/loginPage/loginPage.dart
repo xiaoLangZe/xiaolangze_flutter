@@ -80,7 +80,6 @@ class _LoginpageState extends State<Loginpage> {
             textColor: Colors.white,
             fontSize: 16.0,
           );
-          ;
         } else {
           Navigator.of(context).pop(); // 关闭当前页面
         }
@@ -161,17 +160,26 @@ class _LoginpageState extends State<Loginpage> {
         );
       case LoginType.namePwdLogin:
         return NamePwdLogin(
-          voidCallback: () => _switchTo(LoginType.captchaLogin),
+          toCaptchaLogin: () => _switchTo(LoginType.captchaLogin),
+          forgetPasswd: () => _switchTo(LoginType.changepasswordReceiveCaptcha),
         );
       case LoginType.receiveCaptchaLogin:
         return ReceiveCaptchaLogin(
           toBack: () => _switchTo(LoginType.captchaLogin),
         );
       case LoginType.changepasswordReceiveCaptcha:
+        return ChangepasswordReceiveCaptcha(
+          toBack: () => _switchTo(LoginType.namePwdLogin),
+          changePassword: () => _switchTo(LoginType.changepasswordPage),
+        );
       case LoginType.changepasswordPage:
+        return ChangepasswordPage(
+          toBack: () => _switchTo(LoginType.namePwdLogin),
+        );
       case LoginType.userManual:
         return NamePwdLogin(
-          voidCallback: () => _switchTo(LoginType.captchaLogin),
+          toCaptchaLogin: () => _switchTo(LoginType.captchaLogin),
+          forgetPasswd: () => _switchTo(LoginType.changepasswordReceiveCaptcha),
         );
     }
   }
@@ -179,8 +187,13 @@ class _LoginpageState extends State<Loginpage> {
 
 // 账号密码登录
 class NamePwdLogin extends StatefulWidget {
-  const NamePwdLogin({super.key, required this.voidCallback});
-  final VoidCallback voidCallback;
+  const NamePwdLogin({
+    super.key,
+    required this.toCaptchaLogin,
+    required this.forgetPasswd,
+  });
+  final VoidCallback toCaptchaLogin;
+  final VoidCallback forgetPasswd;
 
   @override
   State<NamePwdLogin> createState() => _NamePwdLoginState();
@@ -211,8 +224,14 @@ class ReceiveCaptchaLogin extends StatefulWidget {
 
 // 修改密码(接收验证码页面)
 class ChangepasswordReceiveCaptcha extends StatefulWidget {
-  const ChangepasswordReceiveCaptcha({super.key, required this.voidCallback});
-  final VoidCallback voidCallback;
+  const ChangepasswordReceiveCaptcha({
+    super.key,
+    required this.toBack,
+    required this.changePassword,
+  });
+  final VoidCallback toBack;
+  final VoidCallback changePassword;
+
   @override
   State<ChangepasswordReceiveCaptcha> createState() =>
       _ChangepasswordReceiveCaptchaState();
@@ -220,8 +239,8 @@ class ChangepasswordReceiveCaptcha extends StatefulWidget {
 
 // 修改密码(填写修改密码)
 class ChangepasswordPage extends StatefulWidget {
-  const ChangepasswordPage({super.key, required this.voidCallback});
-  final VoidCallback voidCallback;
+  const ChangepasswordPage({super.key, required this.toBack});
+  final VoidCallback toBack;
   @override
   State<ChangepasswordPage> createState() => _ChangepasswordPageState();
 }
@@ -378,7 +397,7 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextButton(
-              onPressed: widget.voidCallback,
+              onPressed: widget.toCaptchaLogin,
               style: ButtonStyle(
                 padding: WidgetStateProperty.all(EdgeInsets.zero), // 去掉内边距
                 overlayColor: WidgetStateProperty.all(
@@ -396,7 +415,7 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
               child: Text("验证码登录", style: TextStyle(color: Colors.black)),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: widget.forgetPasswd,
               style: ButtonStyle(
                 padding: WidgetStateProperty.all(EdgeInsets.zero), // 去掉内边距
                 overlayColor: WidgetStateProperty.all(
@@ -741,7 +760,7 @@ class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
 
         TextButton(
           onPressed: _isCounting
-              ? null // 倒计时期间禁用按钮
+              ? null
               : () {
                   sendEmailCode();
                 },
@@ -773,26 +792,315 @@ class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
 // 修改密码(接收验证码)
 class _ChangepasswordReceiveCaptchaState
     extends State<ChangepasswordReceiveCaptcha> {
+  final TextEditingController _controllerUser = TextEditingController();
+  final TextEditingController _controllerCode = TextEditingController();
+  bool _canGetCode = false;
+
+  int _countdown = 60; // 倒计时秒数
+  bool _isCounting = false; // 是否正在倒计时
+  late Timer _timer;
+
+  void _startCountdown() {
+    setState(() {
+      _isCounting = true;
+      _countdown = 60;
+    });
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown <= 0) {
+        _timer.cancel();
+        setState(() {
+          _isCounting = false;
+        });
+      } else {
+        setState(() {
+          _countdown--;
+        });
+      }
+    });
+  }
+
+  void sendEmailCode() {
+    if (_isCounting || !_canGetCode) {
+      return;
+    }
+    _startCountdown();
+  }
+
   @override
   void initState() {
     super.initState();
+    _controllerUser.addListener(() {
+      setState(() {
+        _canGetCode = isValidEmail(_controllerUser.text);
+      });
+    });
+
+    _controllerCode.addListener(() {
+      if (_controllerCode.text.length == 6 &&
+          _controllerCode.text == "123456") {
+        widget.changePassword();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            "找回密码",
+            style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+          ),
+        ),
+        SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            controller: _controllerUser,
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.email),
+              hintText: '请输入邮箱',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            controller: _controllerCode,
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.code),
+              hintText: '请输入验证码',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+            ),
+          ),
+        ),
+        SizedBox(height: 15),
+
+        TextButton(
+          onPressed: _isCounting ? null : sendEmailCode,
+          style: ButtonStyle(
+            padding: WidgetStateProperty.all(EdgeInsets.zero), // 去掉内边距
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
+            backgroundColor: WidgetStateProperty.all<Color>(
+              _isCounting || !_canGetCode
+                  ? Colors.grey[100]!
+                  : Colors.lightBlue,
+            ),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0), // 圆角
+              ),
+            ),
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: Center(
+              child: Text(
+                _isCounting ? '$_countdown 秒后重试' : '获取验证码',
+                style: TextStyle(color: Colors.black, fontSize: 15),
+              ),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 15),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: widget.toBack,
+              style: ButtonStyle(
+                padding: WidgetStateProperty.all(EdgeInsets.zero), // 去掉内边距
+                overlayColor: WidgetStateProperty.all(
+                  Colors.transparent,
+                ), // 去掉水波纹/点击反馈
+                backgroundColor: WidgetStateProperty.all(
+                  Colors.transparent,
+                ), // 背景透明
+
+                alignment: Alignment.centerLeft, // 对齐方式（可选）
+              ),
+              child: Text("< 返回", style: TextStyle(color: Colors.black)),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
 
 // 修改密码(填写修改密码)
 class _ChangepasswordPageState extends State<ChangepasswordPage> {
+  final TextEditingController _controllerPwd1 = TextEditingController();
+  final TextEditingController _controllerPwd2 = TextEditingController();
+
+  bool _isObscurePwd1 = true;
+  bool _isObscurePwd2 = true;
+
+  bool _canChangePwd = false;
+
   @override
   void initState() {
     super.initState();
+
+    _controllerPwd1.addListener(() {
+      setState(() {
+        _canChangePwd = _controllerPwd1.text == _controllerPwd2.text;
+      });
+    });
+
+    _controllerPwd2.addListener(() {
+      setState(() {
+        _canChangePwd = _controllerPwd1.text == _controllerPwd2.text;
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            "修改密码",
+            style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+          ),
+        ),
+        SizedBox(height: 10),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            controller: _controllerPwd1,
+            obscureText: _isObscurePwd1,
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.lock),
+              hintText: '请输入密码',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isObscurePwd1 = !_isObscurePwd1;
+                  });
+                },
+                child: Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(
+                    _isObscurePwd1 ? Icons.visibility_off : Icons.visibility,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 10),
+
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            controller: _controllerPwd2,
+            obscureText: _isObscurePwd2,
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.lock),
+              hintText: '请输入密码',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+              suffixIcon: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isObscurePwd2 = !_isObscurePwd2;
+                  });
+                },
+                child: Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(
+                    _isObscurePwd2 ? Icons.visibility_off : Icons.visibility,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 15),
+
+        TextButton(
+          style: ButtonStyle(
+            padding: WidgetStateProperty.all(EdgeInsets.zero), // 去掉内边距
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
+
+            backgroundColor: WidgetStateProperty.all<Color>(
+              _canChangePwd ? Colors.lightBlue : Colors.grey[100]!,
+            ),
+            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0), // 圆角
+              ),
+            ),
+          ),
+          onPressed: () {},
+          child: SizedBox(
+            width: double.infinity,
+            child: Center(
+              child: Text(
+                "修改密码",
+                style: TextStyle(color: Colors.black, fontSize: 15),
+              ),
+            ),
+          ),
+        ),
+
+        SizedBox(height: 15),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: widget.toBack,
+              style: ButtonStyle(
+                overlayColor: WidgetStateProperty.all(
+                  Colors.transparent,
+                ), // 去掉水波纹/点击反馈
+                backgroundColor: WidgetStateProperty.all(
+                  Colors.transparent,
+                ), // 背景透明
+
+                alignment: Alignment.centerLeft, // 对齐方式（可选）
+              ),
+              child: Text("< 返回", style: TextStyle(color: Colors.black)),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
