@@ -13,6 +13,7 @@ enum LoginType {
 }
 
 String _emailStr = "";
+
 // 校验email
 bool isValidEmail(String email) {
   if (email.isEmpty) {
@@ -45,7 +46,7 @@ class Loginpage extends StatefulWidget {
 }
 
 class _LoginpageState extends State<Loginpage> {
-  LoginType _currentType = LoginType.captchaLogin;
+  LoginType _currentType = LoginType.namePwdLogin;
   DateTime? _lastPressedAt;
 
   void _switchTo(LoginType type) {
@@ -72,7 +73,7 @@ class _LoginpageState extends State<Loginpage> {
           // 第一次点击，或超过2秒
           _lastPressedAt = now;
           Fluttertoast.showToast(
-            msg: "再按一次返回主页",
+            msg: "再按一次取消登录",
             toastLength: Toast.LENGTH_SHORT,
             gravity: ToastGravity.CENTER,
             timeInSecForIosWeb: 1,
@@ -252,9 +253,15 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
   bool _isObscure = true;
   bool _isAgreed = false;
 
+  void login() {
+    if (_controllerUser.text.isEmpty) {
+    } else if (_controllerPwd.text.isEmpty) {}
+  }
+
   @override
   void initState() {
     super.initState();
+    _controllerUser.text = _emailStr;
   }
 
   @override
@@ -269,7 +276,9 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
             style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
           ),
         ),
+
         SizedBox(height: 10),
+
         Container(
           decoration: BoxDecoration(
             color: Colors.grey[100],
@@ -287,6 +296,7 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
         ),
 
         SizedBox(height: 10),
+
         Container(
           decoration: BoxDecoration(
             color: Colors.grey[100],
@@ -318,7 +328,9 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
             ),
           ),
         ),
+
         SizedBox(height: 15),
+
         Align(
           alignment: Alignment.centerLeft,
           child: Row(
@@ -363,10 +375,12 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
             ],
           ),
         ),
+
         SizedBox(height: 15),
 
+        //登录按钮
         TextButton(
-          onPressed: () {},
+          onPressed: login,
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.all<Color>(Colors.lightBlue),
             shape: WidgetStateProperty.all<RoundedRectangleBorder>(
@@ -412,7 +426,7 @@ class _NamePwdLoginState extends State<NamePwdLogin> {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 减小点击区域到文字大小
                 alignment: Alignment.centerLeft, // 对齐方式（可选）
               ),
-              child: Text("验证码登录", style: TextStyle(color: Colors.black)),
+              child: Text("验证码登录/注册", style: TextStyle(color: Colors.black)),
             ),
             TextButton(
               onPressed: widget.forgetPasswd,
@@ -456,8 +470,10 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
   @override
   void initState() {
     super.initState();
+    _controllerUser.text = _emailStr;
     // 检测邮箱
     _controllerUser.addListener(() {
+      _emailStr = _controllerUser.text;
       checkCanNext();
     });
   }
@@ -470,7 +486,7 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
         Align(
           alignment: Alignment.centerLeft,
           child: Text(
-            "验证码登录",
+            "验证码登录/注册",
             style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
           ),
         ),
@@ -830,7 +846,9 @@ class _ChangepasswordReceiveCaptchaState
   @override
   void initState() {
     super.initState();
+    _controllerUser.text = _emailStr;
     _controllerUser.addListener(() {
+      _emailStr = _controllerUser.text;
       setState(() {
         _canGetCode = isValidEmail(_controllerUser.text);
       });

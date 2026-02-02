@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:xiaolangze/pages/feedbackPage/feedbackPage.dart';
+import 'package:xiaolangze/pages/handbook/handbook.dart';
 import 'package:xiaolangze/pages/loginPage/loginPage.dart';
-import 'package:xiaolangze/pages/homePage/homePage.dart';
+import 'package:xiaolangze/pages/homePage/mainPage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,14 +23,16 @@ class MyApp extends StatelessWidget {
         Widget? page;
         switch (settings.name) {
           case 'home': // 主页
-            page = const MyHomePage();
+            page = const MyMainPage();
             break;
           case 'login': // 登录页
             page = const Loginpage();
             break;
-          case "describe": // 描述页
+          case "handbook": // 用户手册 及 隐私政策
+            final String? title = settings.arguments as String?;
+            page = Handbook(title: title);
             break;
-          case "feedback":
+          case "feedback": // 反馈
             page = const FeedBack();
             break;
         }
