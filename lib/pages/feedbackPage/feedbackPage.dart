@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 class FeedBack extends StatefulWidget {
   const FeedBack({super.key});
@@ -112,7 +113,7 @@ class _FeedBackState extends State<FeedBack> {
                             maxLength: 100,
                             decoration: InputDecoration(
                               labelText: '*意见反馈',
-                              hintText: '请描述您遇到的问题或建议(最多100字)',
+                              hintText: '请描述您遇到的问题或建议(最少5字)',
                               border: OutlineInputBorder(),
                               floatingLabelBehavior:
                                   FloatingLabelBehavior.always,
@@ -120,7 +121,30 @@ class _FeedBackState extends State<FeedBack> {
                           ),
                           SizedBox(height: 10),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              if (_controllerMsg.text.isEmpty) {
+                                TDMessage.showMessage(
+                                  context: context,
+                                  visible: true,
+                                  icon: true,
+                                  content: '意见反馈不能为空',
+                                  theme: MessageTheme.error,
+                                  duration: 3000,
+                                );
+                                return;
+                              }
+                              if (_controllerMsg.text.length < 5) {
+                                TDMessage.showMessage(
+                                  context: context,
+                                  visible: true,
+                                  icon: true,
+                                  content: '请输入最少五个字',
+                                  theme: MessageTheme.error,
+                                  duration: 3000,
+                                );
+                                return;
+                              }
+                            },
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all<Color>(
                                 Colors.lightBlue,
