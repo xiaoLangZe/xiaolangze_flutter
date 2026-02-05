@@ -1,59 +1,87 @@
-// import 'dart:convert';
-import 'package:dio/dio.dart';
+import 'dart:convert';
 
-Future<Map<String, dynamic>?> login({
-  required String email,
-  required String password,
+import 'package:dio/dio.dart';
+import "../globals.dart";
+
+Future<Map<String, dynamic>?> login_sendCaptcha({
+  required String userid,
+  required String type,
 }) async {
-  final dio = Dio();
-  final url = 'https://your-api.com/api/login'; // 替换为真实地址
+  var uri = API_USER_URL.replace(path: '/login_sendCaptcha');
 
   try {
-    final response = await dio.post(
-      url,
-      data: {'email': email, 'password': password},
-      options: Options(
-        contentType: 'application/json; charset=utf-8',
-        headers: {'Accept': 'application/json'},
-      ),
+    final resp = await dio.postUri(
+      uri,
+      data: {'userid': userid, 'type': type},
+      options: Options(contentType: Headers.formUrlEncodedContentType),
     );
-
-    // 成功：statusCode 2xx
-    if (response.statusCode! >= 200 && response.statusCode! < 300) {
-      return response.data as Map<String, dynamic>;
+    if (resp.data is Map<String, dynamic>) {
+      return resp.data;
     } else {
-      // 业务逻辑错误（如密码错误）
-      // TDMessage.showMessage(
-      //   context: context,
-      //   visible: true,
-      //   icon: true,
-      //   content: '登录失败: ${response.statusMessage ?? '未知错误'}',
-      //   theme: MessageTheme.error,
-      //   duration: 3000,
-      // );
-      return null;
+      return json.decode(resp.data);
     }
   } catch (e) {
-    // 网络错误、超时、解析失败等
-    // String errorMsg = '网络错误';
-    // if (e is DioException) {
-    //   if (e.type == DioExceptionType.connectionTimeout) {
-    //     errorMsg = '连接超时';
-    //   } else if (e.type == DioExceptionType.receiveTimeout) {
-    //     errorMsg = '接收超时';
-    //   } else if (e.response != null) {
-    //     errorMsg = '服务器错误: ${e.response?.statusCode}';
-    //   }
-    // }
+    if (e is DioException) {
+      final response = e.response;
+      if (response != null) {
+        if (response.data is Map<String, dynamic>) {
+          return response.data;
+        } else if (response.data is String) {
+          try {
+            final jsonMap =
+                json.decode(response.data as String) as Map<String, dynamic>;
+            return jsonMap;
+          } catch (_) {
+            return {
+              'code': response.statusCode,
+              'msg': response.data.toString(),
+            };
+          }
+        }
+      }
+    }
+    return null;
+  }
+}
 
-    // TDMessage.showMessage(
-    //   context: context,
-    //   visible: true,
-    //   icon: true,
-    //   content: '登录失败: $errorMsg',
-    //   theme: MessageTheme.error,
-    //   duration: 3000,
-    // );
+Future<Map<String, dynamic>?> login_checkCaptcha({
+  required String userid,
+  required String code,
+}) async {
+  var uri = API_USER_URL.replace(path: '/login_checkCaptcha');
+
+  try {
+    final resp = await dio.postUri(
+      uri,
+      data: {'userid': userid, "code": code},
+      options: Options(contentType: Headers.formUrlEncodedContentType),
+    );
+
+    if (resp.data is Map<String, dynamic>) {
+      return resp.data;
+    } else {
+      return json.decode(resp.data);
+    }
+  } catch (e) {
+    if (e is DioException) {
+      final response = e.response;
+      if (response != null) {
+        if (response.data is Map<String, dynamic>) {
+          return response.data;
+        } else if (response.data is String) {
+          try {
+            final jsonMap =
+                json.decode(response.data as String) as Map<String, dynamic>;
+            return jsonMap;
+          } catch (_) {
+            return {
+              'code': response.statusCode,
+              'msg': response.data.toString(),
+            };
+          }
+        }
+      }
+    }
     return null;
   }
 }

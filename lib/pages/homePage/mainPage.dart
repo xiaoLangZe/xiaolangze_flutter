@@ -30,7 +30,7 @@ class _MyMainPageState extends State<MyMainPage> {
         highlightElevation: 0.0,
         shape: const CircleBorder(),
         onPressed: () {
-          Navigator.pushNamed(context, "login");
+          // Navigator.pushNamed(context, "login");
         },
         child: const Icon(Icons.add),
       ),
@@ -76,7 +76,7 @@ class _MyMainPageState extends State<MyMainPage> {
                   child: Column(
                     children: [
                       Icon(Icons.control_camera, size: 24, color: Colors.black),
-                      Text("待定", style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text("信息", style: TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -94,8 +94,8 @@ class _MyMainPageState extends State<MyMainPage> {
                   alignment: Alignment.center,
                   child: Column(
                     children: [
-                      Icon(Icons.markunread, size: 24, color: Colors.black),
-                      Text("消息", style: TextStyle(fontWeight: FontWeight.bold)),
+                      Icon(Icons.task, size: 24, color: Colors.black),
+                      Text("任务", style: TextStyle(fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),

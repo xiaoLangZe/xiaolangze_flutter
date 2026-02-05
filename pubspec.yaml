@@ -37,6 +37,8 @@ dependencies:
   dio: ^5.9.1
   tdesign_flutter: ^0.2.7
   fluttertoast: ^9.0.0
+  device_info_plus: ^12.3.0
+  hive: ^2.2.3
 
 dev_dependencies:
   flutter_test:
