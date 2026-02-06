@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
+import 'package:xiaolangze/globals.dart';
 
 class Userpage extends StatefulWidget {
   const Userpage({super.key});
@@ -82,193 +83,202 @@ class _UserpageState extends State<Userpage> {
                 ),
               ),
 
-              Row(
-                spacing: 10,
-                children: [
-                  TDAvatar(
-                    size: TDAvatarSize.large,
-                    type: TDAvatarType.normal,
-                    shape: TDAvatarShape.square,
-                    fit: BoxFit.cover,
-                    defaultUrl: 'assets/images/bg.png',
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "小狼泽",
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 5),
-                            TDTag('Lv1'),
-                          ],
-                        ),
-                        Text("100/200", style: TextStyle(fontSize: 10)),
-                        Stack(
-                          children: [
-                            Container(
-                              width: 100,
-                              color: const Color(0xFFCCCCCC),
-                              height: 3,
-                            ),
-                            Container(
-                              width: 50,
-                              color: const Color.fromARGB(255, 255, 73, 155),
-                              height: 3,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  InkWell(
-                    child: Container(
-                      padding: EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(5)),
-                        color: const Color.fromARGB(255, 225, 255, 170),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            TDIcons.edit_2,
-                            size: 15,
-                            color: const Color(0xFF74A500),
-                          ),
-                          Text(
-                            "编辑资料",
-                            style: TextStyle(
-                              color: const Color(0xFF74A500),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              // TDNoticeBar(
-              //   content: '本app所有内容均来自互联网分享站点所提供的公开引用资源,未提供资源上传、存储服务。',
-              //   theme: TDNoticeBarTheme.warning,
-              //   prefixIcon: TDIcons.error_circle_filled,
-              //   marquee: true,
-              //   // suffixIcon: TDIcons.close,
-              // ),
-              // SizedBox(height: 10),
-              // Container(
-              //   width: double.infinity,
-              //   padding: EdgeInsets.all(10),
-              //   decoration: BoxDecoration(
-              //     color: const Color(0xFFFFFFFF),
-              //     boxShadow: [
-              //       BoxShadow(
-              //         color: Colors.black.withValues(alpha: 0.1), // 黑色半透明阴影
-              //         blurRadius: 10, // 模糊半径（越大越模糊）
-              //         offset: Offset(0, 0), // 阴影偏移（x, y）
-              //         spreadRadius: 1, // 扩散半径（可选，默认0）
-              //       ),
-              //     ],
-              //     borderRadius: BorderRadius.circular(10),
-              //   ),
-              //   child: Column(
+              // Row(
+              //     spacing: 10,
               //     children: [
-              //       Padding(
-              //         padding: EdgeInsetsGeometry.only(
-              //           left: 20,
-              //           top: 10,
-              //           right: 20,
-              //         ),
-              //         child: Row(
-              //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //       TDAvatar(
+              //         size: TDAvatarSize.large,
+              //         type: TDAvatarType.normal,
+              //         shape: TDAvatarShape.square,
+              //         fit: BoxFit.cover,
+              //         defaultUrl: 'assets/images/bg.png',
+              //       ),
+              //       Expanded(
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
               //           children: [
               //             Row(
+              //               // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               //               children: [
               //                 Text(
-              //                   "累计收益:",
+              //                   BOX.get("userData")["userName"] == null
+              //                       ? ""
+              //                       : BOX.get("userData")!["userName"],
               //                   style: TextStyle(
-              //                     fontWeight: FontWeight.bold,
               //                     fontSize: 20,
+              //                     fontWeight: FontWeight.bold,
               //                   ),
               //                 ),
-              //                 SizedBox(width: 10),
-              //                 Text(
-              //                   "0.00",
-              //                   style: TextStyle(
-              //                     fontSize: 20,
-              //                     fontWeight: FontWeight.bold,
+              //                 SizedBox(width: 5),
+              //                 TDTag('Lv1'),
+              //               ],
+              //             ),
+              //             Text("100/200", style: TextStyle(fontSize: 10)),
+              //             Stack(
+              //               children: [
+              //                 Container(
+              //                   width: 100,
+              //                   color: const Color(0xFFCCCCCC),
+              //                   height: 3,
+              //                 ),
+              //                 Container(
+              //                   width: 50,
+              //                   color: const Color.fromARGB(
+              //                     255,
+              //                     255,
+              //                     73,
+              //                     155,
               //                   ),
+              //                   height: 3,
               //                 ),
               //               ],
               //             ),
-              //             InkWell(child: Icon(Icons.visibility)),
               //           ],
               //         ),
               //       ),
-              //       SizedBox(height: 10),
-              //       Row(
-              //         mainAxisAlignment: MainAxisAlignment.spaceAround,
-              //         children: [
-              //           Expanded(
-              //             child: InkWell(
-              //               onTap: () {},
-              //               child: Container(
-              //                 // color: const Color.fromARGB(255, 144, 144, 144),
-              //                 alignment: Alignment.center,
-              //                 child: Column(
-              //                   children: [
-              //                     Text("已提现金额", style: TextStyle()),
-              //                     Text("0.00"),
-              //                   ],
+              //       InkWell(
+              //         child: Container(
+              //           padding: EdgeInsets.all(7),
+              //           decoration: BoxDecoration(
+              //             borderRadius: BorderRadius.all(
+              //               Radius.circular(5),
+              //             ),
+              //             color: const Color.fromARGB(255, 225, 255, 170),
+              //           ),
+              //           child: Row(
+              //             children: [
+              //               Icon(
+              //                 TDIcons.edit_2,
+              //                 size: 15,
+              //                 color: const Color(0xFF74A500),
+              //               ),
+              //               Text(
+              //                 "编辑资料",
+              //                 style: TextStyle(
+              //                   color: const Color(0xFF74A500),
+              //                   fontWeight: FontWeight.bold,
               //                 ),
               //               ),
-              //             ),
+              //             ],
               //           ),
-              //           Expanded(
-              //             child: InkWell(
-              //               onTap: () {},
-              //               child: Container(
-              //                 // color: const Color.fromARGB(255, 144, 144, 144),
-              //                 alignment: Alignment.center,
-              //                 child: Column(
-              //                   children: [
-              //                     Text("未提现余额", style: TextStyle()),
-              //                     Text("0.00"),
-              //                   ],
-              //                 ),
-              //               ),
-              //             ),
-              //           ),
-              //           Expanded(
-              //             child: InkWell(
-              //               onTap: () {},
-              //               child: Container(
-              //                 alignment: Alignment.center,
-              //                 child: Column(
-              //                   children: [
-              //                     Text("积分余额", style: TextStyle()),
-              //                     Text("0"),
-              //                   ],
-              //                 ),
-              //               ),
-              //             ),
-              //           ),
-              //         ],
+              //         ),
               //       ),
-              //       SizedBox(height: 10),
               //     ],
               //   ),
-              // ),
+              SizedBox(height: 20),
+
+              SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFFFF),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1), // 黑色半透明阴影
+                      blurRadius: 10, // 模糊半径（越大越模糊）
+                      offset: Offset(0, 0), // 阴影偏移（x, y）
+                      spreadRadius: 1, // 扩散半径（可选，默认0）
+                    ),
+                  ],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsetsGeometry.only(
+                        left: 20,
+                        top: 10,
+                        right: 20,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "累计收益:",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Text(
+                                 "0.00"
+                                    // : (BOX.get("userData")["allIncome"] / 100)!
+                                    //       .toStringAsFixed(2),
+                                // BOX.get("allIncome").toString(),
+                                ,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          InkWell(child: Icon(Icons.visibility)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {},
+                            child: Container(
+                              // color: const Color.fromARGB(255, 144, 144, 144),
+                              alignment: Alignment.center,
+                              child: Column(
+                                children: [
+                                  Text("已提现金额", style: TextStyle()),
+                                  Text(
+                                    // (BOX.get("userData")["usedIncome"] / 100)
+                                    //     .toStringAsFixed(2),
+                                        "0.00"
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {},
+                            child: Container(
+                              // color: const Color.fromARGB(255, 144, 144, 144),
+                              alignment: Alignment.center,
+                              child: Column(
+                                children: [
+                                  Text("未提现余额", style: TextStyle()),
+                                  Text("0.00"),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () {},
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: Column(
+                                children: [
+                                  Text("积分余额", style: TextStyle()),
+                                  Text("0"),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                  ],
+                ),
+              ),
 
               SizedBox(height: 20),
 

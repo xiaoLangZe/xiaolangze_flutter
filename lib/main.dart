@@ -1,17 +1,16 @@
-import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:xiaolangze/pages/feedbackPage/feedbackPage.dart';
 import 'package:xiaolangze/pages/handbook/handbook.dart';
 import 'package:xiaolangze/pages/loginPage/loginPage.dart';
 import 'package:xiaolangze/pages/homePage/mainPage.dart';
-import 'globals.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Hive.init
-  // HIVE_DAtA_BASE.add({"abc": 123});
-  
-  // print(await getDatabasesPath());
+  // WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
+  await Hive.openBox('userMeta');
+
   runApp(const MyApp());
 }
 

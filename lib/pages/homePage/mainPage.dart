@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tdesign_flutter/tdesign_flutter.dart';
+import 'package:hive/hive.dart';
 import 'package:xiaolangze/pages/homePage/homePage/homePage.dart';
 import 'package:xiaolangze/pages/homePage/userPage/userPage.dart';
 
@@ -31,6 +31,10 @@ class _MyMainPageState extends State<MyMainPage> {
         shape: const CircleBorder(),
         onPressed: () {
           // Navigator.pushNamed(context, "login");
+          var box = Hive.box('userMeta');
+          Map<dynamic, dynamic> allData = box.toMap();
+          // ignore: avoid_print
+          print(allData);
         },
         child: const Icon(Icons.add),
       ),

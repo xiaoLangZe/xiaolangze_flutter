@@ -30,13 +30,29 @@ android {
         versionName = flutter.versionName
     }
 
+    // buildTypes {
+    //     release {
+    //         // TODO: Add your own signing config for the release build.
+    //         // Signing with the debug keys for now, so `flutter run --release` works.
+    //         signingConfig = signingConfigs.getByName("debug")
+    //     }
+    // }
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+
+            // 启用代码混淆和压缩（使用 R8）
+            isMinifyEnabled = true
+            isShrinkResources = true
+
+            // 指定 ProGuard/R8 规则文件（可选，但推荐保留默认规则）
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
+
 }
 
 flutter {

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:hive/hive.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
 final dio = Dio();
 
@@ -12,3 +11,4 @@ Uri API_SEND_EMAIL = GLOBALS_SERVER_Host;
 
 // 数据库
 // var HIVE_DAtA_BASE = Hive;
+var BOX = Hive.box('userMeta');

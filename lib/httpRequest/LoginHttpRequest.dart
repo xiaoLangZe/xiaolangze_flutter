@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import "../globals.dart";
 
 Future<Map<String, dynamic>?> login_sendCaptcha({
-  required String userid,
+  required String userName,
   required String type,
 }) async {
   var uri = API_USER_URL.replace(path: '/login_sendCaptcha');
@@ -12,7 +12,7 @@ Future<Map<String, dynamic>?> login_sendCaptcha({
   try {
     final resp = await dio.postUri(
       uri,
-      data: {'userid': userid, 'type': type},
+      data: {'userid': userName, 'type': type},
       options: Options(contentType: Headers.formUrlEncodedContentType),
     );
     if (resp.data is Map<String, dynamic>) {
@@ -39,8 +39,9 @@ Future<Map<String, dynamic>?> login_sendCaptcha({
           }
         }
       }
+      return {"code": 500, "msg": "无法连接到服务器"};
     }
-    return null;
+    return {"code": 400, "msg": e.toString()};
   }
 }
 

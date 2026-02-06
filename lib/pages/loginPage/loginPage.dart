@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive/hive.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 import 'package:xiaolangze/httpRequest/LoginHttpRequest.dart';
 // import 'package:';
@@ -17,6 +18,38 @@ enum LoginType {
 String _emailStr = "";
 String _userInputHintText = "请输入邮箱";
 
+var sendCaptchaData = (type: "", userName: "");
+Future<Map<String, String>> _sendEmail({
+  required ({String type, String userName}) captchaData,
+  required BuildContext context,
+}) async {
+  var sendType = sendCaptchaData.type;
+  var userName = sendCaptchaData.userName;
+  if (sendType == "" || userName == "") {
+    return {"code": "no ok", "msg": "未知错误，请重新填写邮箱。"};
+  }
+
+  // 加载框
+  TDToast.showLoadingWithoutText(context: context);
+
+  try {
+    // 发送验证码
+    final resp = await login_sendCaptcha(type: sendType, userName: userName);
+
+    // 停止加载框
+    TDToast.dismissLoading();
+
+    if (resp != null && (resp['code'] >= 200 && resp['code'] < 300)) {
+      return {"code": "ok", "msg": resp['msg']};
+    } else {
+      final message = resp?['msg'] ?? "未知错误！";
+      return {"code": "no ok", "msg": message};
+    }
+  } catch (e) {
+    TDToast.dismissLoading();
+    return {"code": "no ok", "msg": "网络请求异常，请稍后重试"};
+  }
+}
 
 // 校验email
 bool isValidEmail(String email) {
@@ -582,52 +615,37 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
         TextButton(
           onPressed: () async {
             if (!_canNext) return;
-
-            final currentContext = context;
-
             final email = _controllerUser.text.trim();
-            TDToast.showLoadingWithoutText(context: context);
-            try {
-              final resp = await login_sendCaptcha(
-                type: "email",
-                userid: email,
-              );
+            sendCaptchaData = (type: "email", userName: email);
 
-              // 安全检查响应
-              if (resp != null && resp['code'] == 200) {
-                TDToast.dismissLoading();
-                widget.toReceiveCaptchaLogin();
-              } else {
-                TDToast.dismissLoading(); // 先关闭 loading
-                // print(resp);
-                final message = resp?['msg'] ?? "未知错误！";
-                if (!mounted) return;
-                TDMessage.showMessage(
-                  // ignore: use_build_context_synchronously
-                  context: currentContext,
-                  visible: true,
-                  icon: true,
-                  content: message,
-                  theme: MessageTheme.error,
-                  duration: 3000,
-                );
-              }
-            } catch (e) {
-              TDToast.dismissLoading();
-              if (!mounted) return;
+            var reStr = await _sendEmail(
+              captchaData: sendCaptchaData,
+              context: context,
+            );
+
+            if (reStr["code"] != "ok") {
               TDMessage.showMessage(
                 // ignore: use_build_context_synchronously
-                context: currentContext,
+                context: context,
                 visible: true,
                 icon: true,
-                content: "网络请求异常，请稍后重试",
+                content: reStr["msg"],
                 theme: MessageTheme.error,
                 duration: 3000,
               );
-              // 建议记录日志：debugPrint('Captcha error: $e');
+            } else {
+              TDMessage.showMessage(
+                // ignore: use_build_context_synchronously
+                context: context,
+                visible: true,
+                icon: true,
+                content: reStr["msg"],
+                theme: MessageTheme.success,
+                duration: 3000,
+              );
+              widget.toReceiveCaptchaLogin();
             }
           },
-
           style: ButtonStyle(
             // 移除水波纹
             overlayColor: WidgetStateProperty.resolveWith<Color?>((state) {
@@ -646,7 +664,6 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
               ),
             ),
           ),
-
           child: SizedBox(
             width: double.infinity,
             child: Center(
@@ -709,7 +726,7 @@ class _CaptchaLoginState extends State<CaptchaLogin> {
   }
 }
 
-// 接收验证码页面
+// (登录)接收验证码页面
 class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
   final TextEditingController _controllerCode = TextEditingController();
   int _countdown = 60; // 倒计时秒数
@@ -736,41 +753,81 @@ class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
     });
   }
 
-  void sendEmailCode() {
+  Future<void> sendEmailCode(BuildContext context) async {
+    var reStr = await _sendEmail(
+      captchaData: sendCaptchaData,
+      context: context,
+    );
+
+    if (reStr["code"] != "ok") {
+      TDMessage.showMessage(
+        // ignore: use_build_context_synchronously
+        context: context,
+        visible: true,
+        icon: true,
+        content: reStr["msg"],
+        theme: MessageTheme.error,
+        duration: 3000,
+      );
+    } else {
+      TDMessage.showMessage(
+        // ignore: use_build_context_synchronously
+        context: context,
+        visible: true,
+        icon: true,
+        content: reStr["msg"],
+        theme: MessageTheme.success,
+        duration: 3000,
+      );
+      // widget.toReceiveCaptchaLogin();
+    }
     _startCountdown();
   }
 
   @override
   void initState() {
     super.initState();
-    sendEmailCode();
+    _startCountdown();
     _controllerCode.addListener(() async {
       if (_controllerCode.text.length != 6) {
         return;
       }
+      TDToast.showLoadingWithoutText(context: context);
 
       final currentContext = context;
       final code = _controllerCode.text.trim();
-      TDToast.showLoadingWithoutText(context: context);
       try {
         final resp = await login_checkCaptcha(userid: _emailStr, code: code);
 
         // 安全检查响应
-        if (resp != null && resp['code'] == 200) {
+        if (resp!['code'] == 200) {
           TDToast.dismissLoading();
-          // widget.toReceiveCaptchaLogin();
-          
-          // 验证码正确
-          if(resp['msg'] == "ok"){
-            // ignore: use_build_context_synchronously
-            Navigator.pop(context);
-          }
 
+          if (resp['msg'] == "ok") {
+            print(resp["data"]);
+            if (resp["data"]["type"] == "login") {
+              // ignore: use_build_context_synchronousl3
+              try {
+                var box = Hive.box('userMeta');
+                box.put('token', resp["data"]["token"]);
+                box.put('userData', resp["data"]["userData"]);
+              } catch (e) {
+                print(e);
+              }
+
+              // ignore: use_build_context_synchronously
+              Navigator.pop(context);
+            } else if (resp["data"]["type"] == "setpwd") {
+              // ignore: avoid_print
+              print("需要重新设置密码");
+              print(resp);
+            }
+          }
         } else {
           TDToast.dismissLoading(); // 先关闭 loading
-          // print(resp);
-          final message = resp?['msg'] ?? "未知错误！";
+          final message = resp['msg'] ?? "无法连接到服务器！";
           if (!mounted) return;
+          // 弹窗
           TDMessage.showMessage(
             // ignore: use_build_context_synchronously
             context: currentContext,
@@ -874,8 +931,9 @@ class _ReceiveCaptchaLoginState extends State<ReceiveCaptchaLogin> {
         TextButton(
           onPressed: _isCounting
               ? null
-              : () {
-                  sendEmailCode();
+              : () async {
+                  // sendEmailCode();
+                  await sendEmailCode(context);
                 },
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.all<Color>(
